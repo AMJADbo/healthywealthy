@@ -237,7 +237,8 @@
       <h2>ANALYSEUR NUTRITIONNEL<br>DE VOS REPAS</h2>
       <p class="food-intro">
         Entrez un aliment et la quantité consommée pour obtenir instantanément les apports en calories, protéines, lipides et glucides.
-        Les données proviennent d'<strong>Open Food Facts</strong>, une base de données open source alimentaire (le même principe que les données gouvernementales ouvertes).
+        Les ingrédients bruts (oeuf, poulet, riz…) sont issus de la <strong>base USDA</strong> intégrée localement — résultat immédiat, sans connexion.
+        Les produits emballés sont récupérés depuis <strong>Open Food Facts</strong>.
       </p>
 
       <div class="food-search-box">
@@ -264,7 +265,7 @@
 
       <!-- Search results list -->
       <div id="food-results-list" class="food-results-list" style="display:none;">
-        <p class="food-results-label">Plusieurs résultats trouvés — choisissez le plus adapté :</p>
+        <p class="food-results-label" id="food-results-label">Plusieurs résultats trouvés — choisissez le plus adapté :</p>
         <div id="food-items-container"></div>
       </div>
 
@@ -275,7 +276,7 @@
             <h3 id="food-card-name">—</h3>
             <p id="food-card-qty" class="food-card-qty">—</p>
           </div>
-          <span class="off-badge">Open Food Facts</span>
+          <span class="off-badge" id="off-badge-text">Base USDA</span>
         </div>
         <div class="food-macros-grid">
           <div class="food-macro-item macro-kcal">
@@ -324,6 +325,15 @@
         <button class="btn-reset" style="margin-top:1.5rem;" onclick="resetFoodSearch()">NOUVELLE RECHERCHE</button>
       </div>
 
+      <!-- Packaged products from OFF (shown alongside local result) -->
+      <div id="food-off-section" class="food-off-section" style="display:none;">
+        <div class="food-off-header">
+          <span class="off-badge" style="font-size:0.8rem;">Open Food Facts</span>
+          <p>Produits emballés contenant cet ingrédient :</p>
+        </div>
+        <div id="food-off-items"></div>
+      </div>
+
       <div class="off-credit">
         <p>Données fournies par <strong>Open Food Facts</strong> — base de données alimentaire collaborative et open source.
         Disponible sous licence <em>Open Database License</em>.</p>
@@ -336,6 +346,7 @@
     <p>&copy; 2026 HealthyWealthy. Tous droits réservés. — Les résultats sont à titre indicatif uniquement.</p>
   </footer>
 
+  <script src="foods-db.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
