@@ -16,8 +16,9 @@
       <a href="#" class="logo">Healthy<span>Wealthy</span></a>
       <ul class="nav-links">
         <li><a href="#calculator">Calculateur</a></li>
-        <li><a href="#activity">Niveau d'activité</a></li>
+        <li><a href="#activity">Activité</a></li>
         <li><a href="#food">Analyse repas</a></li>
+        <li><a href="#journal">Journal</a></li>
       </ul>
     </div>
   </nav>
@@ -127,12 +128,12 @@
         <div class="result-unit">Kcal/Jour</div>
       </div>
       <div class="result-card">
-        <div class="result-icon">⚗️</div>
+        <div class="result-icon">🥩</div>
         <div class="result-value"><span id="res-protein">—</span> <span class="unit-g">g</span></div>
         <div class="result-unit">Protéines/Jour</div>
       </div>
       <div class="result-card">
-        <div class="result-icon">💧</div>
+        <div class="result-icon">🥑</div>
         <div class="result-value"><span id="res-fat">—</span> <span class="unit-g">g</span></div>
         <div class="result-unit">Lipides/Jour</div>
       </div>
@@ -167,8 +168,8 @@
   <!-- ===== ACTIVITY LEVEL SECTION ===== -->
   <section id="activity" class="activity-section">
     <div class="activity-inner">
-      <h2>COMMENT IDENTIFIER<br>VOTRE NIVEAU D'ACTIVITÉ</h2>
-      <p class="activity-intro">Pour calculer avec précision vos besoins caloriques, il est essentiel de bien identifier votre niveau d'activité physique. Voici un guide détaillé pour vous aider à choisir le bon niveau :</p>
+      <h2>COMMENT IDENTIFIER VOTRE NIVEAU D'ACTIVITÉ</h2>
+      <p class="activity-intro">Choisissez le niveau qui correspond le mieux à votre quotidien pour un calcul précis de vos besoins caloriques.</p>
 
       <div class="activity-cards">
 
@@ -177,8 +178,8 @@
           <div class="activity-card-content">
             <h3>Sédentaire</h3>
             <p class="activity-multiplier">Coefficient : × 1,2</p>
-            <p>Vous avez un mode de vie peu actif : vous travaillez assis la plupart du temps (bureau, télétravail), vous ne pratiquez aucun sport ou très rarement (moins d'une fois par semaine). Vos déplacements se font principalement en voiture ou en transports en commun. Vous rentrez chez vous et passez vos soirées à vous reposer ou devant un écran.</p>
-            <p><strong>Exemples :</strong> employé de bureau sans activité sportive, retraité peu actif, étudiant qui ne fait pas de sport.</p>
+            <p>Peu ou pas d'exercice. Travail assis, déplacements en voiture. Soirées sans activité physique.</p>
+            <p><strong>Ex :</strong> employé de bureau, étudiant sans sport.</p>
           </div>
         </div>
 
@@ -187,8 +188,8 @@
           <div class="activity-card-content">
             <h3>Légèrement Actif</h3>
             <p class="activity-multiplier">Coefficient : × 1,375</p>
-            <p>Vous pratiquez une activité physique légère 1 à 3 fois par semaine. Cela peut être une marche quotidienne, du vélo occasionnel, une séance de yoga ou de stretching, ou encore quelques exercices légers à la maison. Vous êtes sur pied une bonne partie de la journée mais sans effort intense.</p>
-            <p><strong>Exemples :</strong> quelqu'un qui fait une marche de 30 minutes par jour, qui va à la salle de sport 1 à 2 fois par semaine de façon légère, ou qui fait du jardinage régulièrement.</p>
+            <p>Activité légère 1 à 3 fois/semaine : marche, vélo, yoga ou exercices à domicile.</p>
+            <p><strong>Ex :</strong> marche quotidienne, salle de sport 1–2 fois/semaine.</p>
           </div>
         </div>
 
@@ -197,8 +198,8 @@
           <div class="activity-card-content">
             <h3>Modérément Actif</h3>
             <p class="activity-multiplier">Coefficient : × 1,55</p>
-            <p>Vous faites du sport 3 à 5 fois par semaine avec une intensité modérée à élevée. Vos séances durent généralement entre 45 minutes et 1h30. Vous pratiquez des activités comme la musculation, la course à pied, le cyclisme, la natation ou un sport collectif. En dehors du sport, vous avez un mode de vie relativement actif.</p>
-            <p><strong>Exemples :</strong> sportif amateur régulier, quelqu'un qui court 3 fois par semaine et va à la salle 2 fois, personne qui fait du sport en semaine et reste actif le week-end.</p>
+            <p>Sport modéré à intense 3 à 5 fois/semaine (musculation, course, natation).</p>
+            <p><strong>Ex :</strong> sportif amateur régulier, 3–5 séances de 45 min/semaine.</p>
           </div>
         </div>
 
@@ -207,18 +208,18 @@
           <div class="activity-card-content">
             <h3>Actif</h3>
             <p class="activity-multiplier">Coefficient : × 1,725</p>
-            <p>Vous vous entraînez intensément presque tous les jours (6 à 7 fois par semaine). Vos séances sont longues et exigeantes physiquement. En dehors de l'entraînement, vous avez un travail ou un mode de vie qui vous maintient en mouvement. Vous ressentez régulièrement les effets de la fatigue physique.</p>
-            <p><strong>Exemples :</strong> athlète amateur sérieux, sportif qui s'entraîne deux fois par jour, personne dont le travail est physiquement exigeant (maçon, infirmier, etc.) et qui fait du sport en plus.</p>
+            <p>Entraînements intensifs 6 à 7 jours/semaine ou travail physiquement exigeant.</p>
+            <p><strong>Ex :</strong> athlète amateur sérieux, maçon pratiquant du sport.</p>
           </div>
         </div>
 
-        <div class="activity-card">
+        <div class="activity-card activity-card--full">
           <div class="activity-badge tres-actif">5</div>
           <div class="activity-card-content">
             <h3>Très Actif</h3>
             <p class="activity-multiplier">Coefficient : × 1,9</p>
-            <p>Vous avez un niveau d'activité extrêmement élevé. Vous vous entraînez très intensément chaque jour, souvent deux fois par jour, ou vous exercez un métier physiquement très exigeant tout en pratiquant du sport de façon intensive. Vos besoins énergétiques sont considérablement plus élevés que la moyenne.</p>
-            <p><strong>Exemples :</strong> athlète professionnel ou de haut niveau, préparateur physique très actif, militaire en entraînement intensif, travailleur de force pratiquant du sport quotidiennement.</p>
+            <p>Niveau extrême : double entraînement quotidien ou métier physique très intense en plus du sport.</p>
+            <p><strong>Ex :</strong> athlète professionnel, militaire en entraînement intensif.</p>
           </div>
         </div>
 
@@ -226,7 +227,7 @@
 
       <div class="activity-tip">
         <div class="tip-icon">💡</div>
-        <p><strong>Conseil :</strong> Si vous hésitez entre deux niveaux, choisissez le niveau inférieur. Il est toujours plus facile d'augmenter vos apports progressivement que de constater une prise de poids non désirée. Réévaluez régulièrement votre niveau d'activité, surtout si votre mode de vie change.</p>
+        <p><strong>Conseil :</strong> En cas de doute entre deux niveaux, choisissez le niveau inférieur et ajustez progressivement selon vos résultats.</p>
       </div>
     </div>
   </section>
@@ -251,7 +252,7 @@
             </div>
           </div>
           <div class="food-input-group food-qty-group">
-            <label for="food-qty">Quantité (g)</label>
+            <label for="food-qty">Quantité (g-ml)</label>
             <input type="number" id="food-qty" placeholder="ex: 200" min="1" max="5000" />
           </div>
           <button class="btn-food-search" onclick="searchFood()">ANALYSER</button>
@@ -322,7 +323,19 @@
           <span>Protéines</span><span>Lipides</span><span>Glucides</span>
         </div>
 
-        <button class="btn-reset" style="margin-top:1.5rem;" onclick="resetFoodSearch()">NOUVELLE RECHERCHE</button>
+        <!-- Add to meal -->
+        <div class="add-to-meal-box">
+          <p class="add-to-meal-label">Ajouter cet aliment à un repas :</p>
+          <div class="meal-btns">
+            <button class="btn-meal" onclick="addToMeal('breakfast')">🌅 Petit-déjeuner</button>
+            <button class="btn-meal" onclick="addToMeal('lunch')">☀️ Déjeuner</button>
+            <button class="btn-meal" onclick="addToMeal('dinner')">🌙 Dîner</button>
+            <button class="btn-meal" onclick="addToMeal('snack')">🍎 Collation</button>
+          </div>
+          <div id="meal-added-confirm" class="meal-added-confirm" style="display:none;"></div>
+        </div>
+
+        <button class="btn-reset btn-reset-dark" style="margin-top:1rem;" onclick="resetFoodSearch()">NOUVELLE RECHERCHE</button>
       </div>
 
       <!-- Packaged products from OFF (shown alongside local result) -->
@@ -337,6 +350,62 @@
       <div class="off-credit">
         <p>Données fournies par <strong>Open Food Facts</strong> — base de données alimentaire collaborative et open source.
         Disponible sous licence <em>Open Database License</em>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== JOURNAL SECTION ===== -->
+  <section id="journal" class="journal-section">
+    <div class="journal-inner">
+      <div class="journal-header">
+        <div>
+          <h2>MON JOURNAL DU JOUR</h2>
+          <p class="journal-date" id="journal-date"></p>
+        </div>
+        <button class="btn-clear-journal" onclick="clearJournal()">Réinitialiser</button>
+      </div>
+
+      <div class="journal-meals" id="journal-meals">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Daily total -->
+      <div class="journal-total" id="journal-total" style="display:none;">
+        <div class="total-header">TOTAL JOURNALIER</div>
+        <div class="total-grid">
+          <div class="total-item">
+            <div class="total-icon">🔥</div>
+            <div class="total-value" id="total-kcal">0</div>
+            <div class="total-label">Kcal</div>
+          </div>
+          <div class="total-item">
+            <div class="total-icon">⚗️</div>
+            <div class="total-value" id="total-protein">0 g</div>
+            <div class="total-label">Protéines</div>
+          </div>
+          <div class="total-item">
+            <div class="total-icon">💧</div>
+            <div class="total-value" id="total-fat">0 g</div>
+            <div class="total-label">Lipides</div>
+          </div>
+          <div class="total-item">
+            <div class="total-icon">🌾</div>
+            <div class="total-value" id="total-carbs">0 g</div>
+            <div class="total-label">Glucides</div>
+          </div>
+        </div>
+        <div class="bar-wrapper" id="total-bar" style="max-width:700px; margin:1.5rem auto 0;">
+          <div class="bar-segment bar-protein" id="total-bar-p" style="width:25%"><span id="total-pct-p">25%</span></div>
+          <div class="bar-segment bar-fat"     id="total-bar-f" style="width:25%"><span id="total-pct-f">25%</span></div>
+          <div class="bar-segment bar-carbs"   id="total-bar-c" style="width:50%"><span id="total-pct-c">50%</span></div>
+        </div>
+        <div class="bar-labels" style="max-width:700px; margin:0.5rem auto 0;">
+          <span>Protéines</span><span>Lipides</span><span>Glucides</span>
+        </div>
+      </div>
+
+      <div class="journal-empty" id="journal-empty">
+        <p>Votre journal est vide.<br>Analysez un aliment ci-dessus et ajoutez-le à un repas.</p>
       </div>
     </div>
   </section>

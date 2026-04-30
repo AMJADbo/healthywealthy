@@ -358,6 +358,161 @@ function resetFoodSearch() {
   document.getElementById('food-results-list').style.display = 'none';
   document.getElementById('food-nutrition-card').style.display = 'none';
   document.getElementById('food-off-section').style.display = 'none';
+  document.getElementById('meal-added-confirm').style.display = 'none';
   offProducts = [];
+  currentFoodEntry = null;
   document.getElementById('food-query').focus();
 }
+
+// ===== JOURNAL ALIMENTAIRE =====
+
+const MEAL_LABELS = {
+  breakfast: '🌅 Petit-déjeuner',
+  lunch:     '☀️ Déjeuner',
+  dinner:    '🌙 Dîner',
+  snack:     '🍎 Collation',
+};
+
+let currentFoodEntry = null; // set by renderNutritionCard
+
+function getJournalKey() {
+  return 'hw_journal_' + new Date().toISOString().slice(0, 10);
+}
+
+function loadJournal() {
+  const raw = localStorage.getItem(getJournalKey());
+  if (raw) return JSON.parse(raw);
+  return { breakfast: [], lunch: [], dinner: [], snack: [] };
+}
+
+function saveJournal(data) {
+  localStorage.setItem(getJournalKey(), JSON.stringify(data));
+}
+
+function addToMeal(mealKey) {
+  if (!currentFoodEntry) return;
+  const journal = loadJournal();
+  journal[mealKey].push({ ...currentFoodEntry });
+  saveJournal(journal);
+  renderJournal();
+
+  const label = MEAL_LABELS[mealKey];
+  const confirm = document.getElementById('meal-added-confirm');
+  confirm.textContent = `✓ Ajouté à ${label} — ${currentFoodEntry.kcal} kcal`;
+  confirm.style.display = 'block';
+  setTimeout(() => { confirm.style.display = 'none'; }, 3000);
+
+  document.getElementById('journal').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function removeFromMeal(mealKey, index) {
+  const journal = loadJournal();
+  journal[mealKey].splice(index, 1);
+  saveJournal(journal);
+  renderJournal();
+}
+
+function clearJournal() {
+  if (!confirm('Réinitialiser tout le journal du jour ?')) return;
+  localStorage.removeItem(getJournalKey());
+  renderJournal();
+}
+
+function renderJournal() {
+  const journal = loadJournal();
+  const mealsEl = document.getElementById('journal-meals');
+  const totalEl = document.getElementById('journal-total');
+  const emptyEl = document.getElementById('journal-empty');
+
+  // Date label
+  const today = new Date();
+  document.getElementById('journal-date').textContent =
+    today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const allEntries = Object.values(journal).flat();
+
+  if (allEntries.length === 0) {
+    mealsEl.innerHTML = '';
+    totalEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  // Render each meal block
+  mealsEl.innerHTML = Object.entries(MEAL_LABELS).map(([key, label]) => {
+    const entries = journal[key];
+    if (entries.length === 0) return '';
+    const mealKcal = entries.reduce((s, e) => s + e.kcal, 0);
+
+    const rows = entries.map((e, i) => `
+      <div class="meal-food-row">
+        <div class="meal-food-name">
+          ${e.name} <span>${e.qty} g</span>
+        </div>
+        <div class="meal-food-macros">
+          <span>🔥 <strong>${e.kcal}</strong> kcal</span>
+          <span>P <strong>${e.protein}g</strong></span>
+          <span>L <strong>${e.fat}g</strong></span>
+          <span>G <strong>${e.carbs}g</strong></span>
+        </div>
+        <button class="btn-remove-food" onclick="removeFromMeal('${key}', ${i})" title="Supprimer">✕</button>
+      </div>`).join('');
+
+    return `
+      <div class="journal-meal-block">
+        <div class="meal-block-header">
+          <span class="meal-block-title">${label}</span>
+          <span class="meal-block-kcal">${mealKcal} <span>kcal</span></span>
+        </div>
+        <div class="meal-food-list">${rows}</div>
+      </div>`;
+  }).join('');
+
+  // Totals
+  const totKcal    = allEntries.reduce((s, e) => s + e.kcal,    0);
+  const totProtein = Math.round(allEntries.reduce((s, e) => s + e.protein, 0) * 10) / 10;
+  const totFat     = Math.round(allEntries.reduce((s, e) => s + e.fat,     0) * 10) / 10;
+  const totCarbs   = Math.round(allEntries.reduce((s, e) => s + e.carbs,   0) * 10) / 10;
+
+  document.getElementById('total-kcal').textContent    = totKcal;
+  document.getElementById('total-protein').textContent = totProtein + ' g';
+  document.getElementById('total-fat').textContent     = totFat + ' g';
+  document.getElementById('total-carbs').textContent   = totCarbs + ' g';
+
+  const totalMacroCals = totProtein * 4 + totFat * 9 + totCarbs * 4;
+  if (totalMacroCals > 0) {
+    const pP = Math.round((totProtein * 4 / totalMacroCals) * 100);
+    const pF = Math.round((totFat     * 9 / totalMacroCals) * 100);
+    const pC = 100 - pP - pF;
+    document.getElementById('total-bar-p').style.width = pP + '%';
+    document.getElementById('total-bar-f').style.width = pF + '%';
+    document.getElementById('total-bar-c').style.width = pC + '%';
+    document.getElementById('total-pct-p').textContent = pP + '%';
+    document.getElementById('total-pct-f').textContent = pF + '%';
+    document.getElementById('total-pct-c').textContent = pC + '%';
+  }
+
+  totalEl.style.display = 'block';
+}
+
+// Store the current food result so addToMeal can use it
+const _origRender = renderNutritionCard;
+renderNutritionCard = function(kcal, protein, fat, carbs, fiber, salt) {
+  _origRender(kcal, protein, fat, carbs, fiber, salt);
+  // save for journal use — name/qty are read from the DOM
+  const name = document.getElementById('food-card-name').textContent;
+  const qtyText = document.getElementById('food-card-qty').textContent;
+  const qty = parseFloat(qtyText.replace(/[^0-9.]/g, '')) || 0;
+  currentFoodEntry = {
+    name, qty, kcal,
+    protein: parseFloat(protein) || 0,
+    fat:     parseFloat(fat)     || 0,
+    carbs:   parseFloat(carbs)   || 0,
+  };
+  document.getElementById('meal-added-confirm').style.display = 'none';
+};
+
+// Init journal on page load
+document.addEventListener('DOMContentLoaded', renderJournal);
