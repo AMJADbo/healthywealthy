@@ -809,6 +809,27 @@ input[type="number"].food-qty { -moz-appearance: textfield; }
   letter-spacing: 0.4px;
 }
 
+/* OFF packaged products section */
+.food-off-section {
+  margin-top: 2rem;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: #161616;
+}
+
+.food-off-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.food-off-header p {
+  color: #888;
+  font-size: 0.85rem;
+}
+
 /* OFF credit */
 .off-credit {
   margin-top: 2.5rem;
