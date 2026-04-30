@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthyWealthy — Calculateur de Calories</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo">Healthy<span>Wealthy</span></a>
+      <ul class="nav-links">
+        <li><a href="#calculator">Calculateur</a></li>
+        <li><a href="#activity">Niveau d'activité</a></li>
+        <li><a href="#results-section">Résultats</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>CALCULATEUR<br>DE CALORIES<br><span class="blue">GRATUIT</span></h1>
+      <p>Estimez vos besoins caloriques journaliers et la répartition idéale de vos macronutriments en fonction de votre profil et de votre objectif sportif.</p>
+    </div>
+  </section>
+
+  <!-- ===== CALCULATOR SECTION ===== -->
+  <section id="calculator" class="calculator-section">
+    <div class="calc-wrapper">
+
+      <!-- LEFT: Description -->
+      <div class="calc-description">
+        <h2>CALCULATEUR DE<br>CALORIES GRATUIT</h2>
+        <p>Si vous voulez atteindre un objectif sportif, il est important d'ajuster votre apport calorique en conséquence. Vos besoins caloriques varient en fonction de votre objectif sportif, mais aussi de multiples facteurs tels que le sexe, l'âge, la taille, le poids, etc.</p>
+        <p>Nous avons mis en place une calculatrice qui vous aidera à identifier vos besoins caloriques, en fonction de votre objectif. En fonction de vos résultats, vous pourrez adapter votre alimentation pour atteindre votre objectif.</p>
+        <p>Avec notre calculatrice de calories, vos besoins caloriques pour atteindre votre objectif sont estimés en quelques secondes. Notre calculateur vous donne également une estimation de la quantité de macronutriments (ou macros) que vous devez consommer quotidiennement. Les macronutriments regroupent les glucides, protéines et lipides.</p>
+      </div>
+
+      <!-- RIGHT: Form -->
+      <div class="calc-form-box">
+        <h2 class="form-title">ENTREZ VOS INFORMATIONS<br>POUR VOIR VOS RÉSULTATS</h2>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Âge (en années)</label>
+            <input type="number" id="age" placeholder="ex: 25" min="10" max="100" />
+          </div>
+          <div class="form-field">
+            <label>Poids (kg)</label>
+            <input type="number" id="weight" placeholder="ex: 70" min="30" max="300" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field gender-field">
+            <label>Sexe</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="gender" value="male" checked />
+                <span class="radio-custom"></span> Homme
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="gender" value="female" />
+                <span class="radio-custom"></span> Femme
+              </label>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Taille (cm)</label>
+            <input type="number" id="height" placeholder="ex: 175" min="100" max="250" />
+          </div>
+        </div>
+
+        <div class="form-field full-width">
+          <label>Niveau d'activité</label>
+          <div class="select-wrapper">
+            <select id="activity">
+              <option value="">-- Sélectionner --</option>
+              <option value="1.2">Sédentaire (peu ou pas d'exercice)</option>
+              <option value="1.375">Légèrement actif (1–3 jours/semaine)</option>
+              <option value="1.55">Modérément actif (3–5 jours/semaine)</option>
+              <option value="1.725">Actif (6–7 jours/semaine)</option>
+              <option value="1.9">Très actif (exercice intense, travail physique)</option>
+            </select>
+            <span class="select-arrow">&#8964;</span>
+          </div>
+        </div>
+
+        <div class="form-field full-width">
+          <label>Objectif</label>
+          <div class="select-wrapper">
+            <select id="goal">
+              <option value="">-- Sélectionner --</option>
+              <option value="gain">Gain musculaire</option>
+              <option value="loss">Perte de poids</option>
+              <option value="maintain">Remise en forme / Maintien</option>
+              <option value="tone">Sculpter &amp; Tonifier</option>
+              <option value="endurance">Améliorer l'endurance</option>
+            </select>
+            <span class="select-arrow">&#8964;</span>
+          </div>
+        </div>
+
+        <div id="form-error" class="form-error" style="display:none;">Veuillez remplir tous les champs.</div>
+
+        <button class="btn-calculate" onclick="calculate()">CALCULER</button>
+        <button class="btn-reset" onclick="resetForm()">RÉINITIALISER</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RESULTS SECTION ===== -->
+  <section id="results-section" class="results-section" style="display:none;">
+    <h2 class="results-title">VOS RÉSULTATS</h2>
+    <p class="results-subtitle">Vos besoins en apports journaliers :</p>
+
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-icon">🔥</div>
+        <div class="result-value"><span id="res-kcal">—</span></div>
+        <div class="result-unit">Kcal/Jour</div>
+      </div>
+      <div class="result-card">
+        <div class="result-icon">⚗️</div>
+        <div class="result-value"><span id="res-protein">—</span> <span class="unit-g">g</span></div>
+        <div class="result-unit">Protéines/Jour</div>
+      </div>
+      <div class="result-card">
+        <div class="result-icon">💧</div>
+        <div class="result-value"><span id="res-fat">—</span> <span class="unit-g">g</span></div>
+        <div class="result-unit">Lipides/Jour</div>
+      </div>
+      <div class="result-card">
+        <div class="result-icon">🌾</div>
+        <div class="result-value"><span id="res-carbs">—</span> <span class="unit-g">g</span></div>
+        <div class="result-unit">Carbs/Jour</div>
+      </div>
+    </div>
+
+    <p class="distribution-title">La répartition de vos apports :</p>
+    <div class="bar-wrapper">
+      <div class="bar-segment bar-protein" id="bar-protein">
+        <span id="pct-protein">—%</span>
+      </div>
+      <div class="bar-segment bar-fat" id="bar-fat">
+        <span id="pct-fat">—%</span>
+      </div>
+      <div class="bar-segment bar-carbs" id="bar-carbs">
+        <span id="pct-carbs">—%</span>
+      </div>
+    </div>
+    <div class="bar-labels">
+      <span>Protéines</span>
+      <span>Lipides</span>
+      <span>Glucides</span>
+    </div>
+
+    <p class="results-note">N'oubliez pas qu'une alimentation équilibrée et variée est nécessaire pour atteindre votre objectif sportif. Consultez un professionnel de santé pour un programme personnalisé.</p>
+  </section>
+
+  <!-- ===== ACTIVITY LEVEL SECTION ===== -->
+  <section id="activity" class="activity-section">
+    <div class="activity-inner">
+      <h2>COMMENT IDENTIFIER<br>VOTRE NIVEAU D'ACTIVITÉ</h2>
+      <p class="activity-intro">Pour calculer avec précision vos besoins caloriques, il est essentiel de bien identifier votre niveau d'activité physique. Voici un guide détaillé pour vous aider à choisir le bon niveau :</p>
+
+      <div class="activity-cards">
+
+        <div class="activity-card">
+          <div class="activity-badge sedentaire">1</div>
+          <div class="activity-card-content">
+            <h3>Sédentaire</h3>
+            <p class="activity-multiplier">Coefficient : × 1,2</p>
+            <p>Vous avez un mode de vie peu actif : vous travaillez assis la plupart du temps (bureau, télétravail), vous ne pratiquez aucun sport ou très rarement (moins d'une fois par semaine). Vos déplacements se font principalement en voiture ou en transports en commun. Vous rentrez chez vous et passez vos soirées à vous reposer ou devant un écran.</p>
+            <p><strong>Exemples :</strong> employé de bureau sans activité sportive, retraité peu actif, étudiant qui ne fait pas de sport.</p>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <div class="activity-badge legerement">2</div>
+          <div class="activity-card-content">
+            <h3>Légèrement Actif</h3>
+            <p class="activity-multiplier">Coefficient : × 1,375</p>
+            <p>Vous pratiquez une activité physique légère 1 à 3 fois par semaine. Cela peut être une marche quotidienne, du vélo occasionnel, une séance de yoga ou de stretching, ou encore quelques exercices légers à la maison. Vous êtes sur pied une bonne partie de la journée mais sans effort intense.</p>
+            <p><strong>Exemples :</strong> quelqu'un qui fait une marche de 30 minutes par jour, qui va à la salle de sport 1 à 2 fois par semaine de façon légère, ou qui fait du jardinage régulièrement.</p>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <div class="activity-badge moderement">3</div>
+          <div class="activity-card-content">
+            <h3>Modérément Actif</h3>
+            <p class="activity-multiplier">Coefficient : × 1,55</p>
+            <p>Vous faites du sport 3 à 5 fois par semaine avec une intensité modérée à élevée. Vos séances durent généralement entre 45 minutes et 1h30. Vous pratiquez des activités comme la musculation, la course à pied, le cyclisme, la natation ou un sport collectif. En dehors du sport, vous avez un mode de vie relativement actif.</p>
+            <p><strong>Exemples :</strong> sportif amateur régulier, quelqu'un qui court 3 fois par semaine et va à la salle 2 fois, personne qui fait du sport en semaine et reste actif le week-end.</p>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <div class="activity-badge actif">4</div>
+          <div class="activity-card-content">
+            <h3>Actif</h3>
+            <p class="activity-multiplier">Coefficient : × 1,725</p>
+            <p>Vous vous entraînez intensément presque tous les jours (6 à 7 fois par semaine). Vos séances sont longues et exigeantes physiquement. En dehors de l'entraînement, vous avez un travail ou un mode de vie qui vous maintient en mouvement. Vous ressentez régulièrement les effets de la fatigue physique.</p>
+            <p><strong>Exemples :</strong> athlète amateur sérieux, sportif qui s'entraîne deux fois par jour, personne dont le travail est physiquement exigeant (maçon, infirmier, etc.) et qui fait du sport en plus.</p>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <div class="activity-badge tres-actif">5</div>
+          <div class="activity-card-content">
+            <h3>Très Actif</h3>
+            <p class="activity-multiplier">Coefficient : × 1,9</p>
+            <p>Vous avez un niveau d'activité extrêmement élevé. Vous vous entraînez très intensément chaque jour, souvent deux fois par jour, ou vous exercez un métier physiquement très exigeant tout en pratiquant du sport de façon intensive. Vos besoins énergétiques sont considérablement plus élevés que la moyenne.</p>
+            <p><strong>Exemples :</strong> athlète professionnel ou de haut niveau, préparateur physique très actif, militaire en entraînement intensif, travailleur de force pratiquant du sport quotidiennement.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="activity-tip">
+        <div class="tip-icon">💡</div>
+        <p><strong>Conseil :</strong> Si vous hésitez entre deux niveaux, choisissez le niveau inférieur. Il est toujours plus facile d'augmenter vos apports progressivement que de constater une prise de poids non désirée. Réévaluez régulièrement votre niveau d'activité, surtout si votre mode de vie change.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <p>&copy; 2026 HealthyWealthy. Tous droits réservés. — Les résultats sont à titre indicatif uniquement.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
