@@ -17,7 +17,7 @@
       <ul class="nav-links">
         <li><a href="#calculator">Calculateur</a></li>
         <li><a href="#activity">Niveau d'activité</a></li>
-        <li><a href="#results-section">Résultats</a></li>
+        <li><a href="#food">Analyse repas</a></li>
       </ul>
     </div>
   </nav>
@@ -227,6 +227,106 @@
       <div class="activity-tip">
         <div class="tip-icon">💡</div>
         <p><strong>Conseil :</strong> Si vous hésitez entre deux niveaux, choisissez le niveau inférieur. Il est toujours plus facile d'augmenter vos apports progressivement que de constater une prise de poids non désirée. Réévaluez régulièrement votre niveau d'activité, surtout si votre mode de vie change.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOD NUTRITION SECTION ===== -->
+  <section id="food" class="food-section">
+    <div class="food-inner">
+      <h2>ANALYSEUR NUTRITIONNEL<br>DE VOS REPAS</h2>
+      <p class="food-intro">
+        Entrez un aliment et la quantité consommée pour obtenir instantanément les apports en calories, protéines, lipides et glucides.
+        Les données proviennent d'<strong>Open Food Facts</strong>, une base de données open source alimentaire (le même principe que les données gouvernementales ouvertes).
+      </p>
+
+      <div class="food-search-box">
+        <div class="food-search-row">
+          <div class="food-input-group">
+            <label for="food-query">Aliment</label>
+            <div class="food-input-wrap">
+              <input type="text" id="food-query" placeholder="ex: viande hachée, poulet, riz..." autocomplete="off" oninput="onFoodInput()" />
+              <div id="food-suggestions" class="food-suggestions" style="display:none;"></div>
+            </div>
+          </div>
+          <div class="food-input-group food-qty-group">
+            <label for="food-qty">Quantité (g)</label>
+            <input type="number" id="food-qty" placeholder="ex: 200" min="1" max="5000" />
+          </div>
+          <button class="btn-food-search" onclick="searchFood()">ANALYSER</button>
+        </div>
+
+        <div id="food-error" class="form-error" style="display:none;"></div>
+        <div id="food-loading" class="food-loading" style="display:none;">
+          <div class="spinner"></div> Recherche en cours…
+        </div>
+      </div>
+
+      <!-- Search results list -->
+      <div id="food-results-list" class="food-results-list" style="display:none;">
+        <p class="food-results-label">Plusieurs résultats trouvés — choisissez le plus adapté :</p>
+        <div id="food-items-container"></div>
+      </div>
+
+      <!-- Nutrition result card -->
+      <div id="food-nutrition-card" class="food-nutrition-card" style="display:none;">
+        <div class="food-card-header">
+          <div>
+            <h3 id="food-card-name">—</h3>
+            <p id="food-card-qty" class="food-card-qty">—</p>
+          </div>
+          <span class="off-badge">Open Food Facts</span>
+        </div>
+        <div class="food-macros-grid">
+          <div class="food-macro-item macro-kcal">
+            <div class="macro-icon">🔥</div>
+            <div class="macro-value" id="fn-kcal">—</div>
+            <div class="macro-label">Calories</div>
+          </div>
+          <div class="food-macro-item macro-protein">
+            <div class="macro-icon">⚗️</div>
+            <div class="macro-value" id="fn-protein">—</div>
+            <div class="macro-label">Protéines</div>
+          </div>
+          <div class="food-macro-item macro-fat">
+            <div class="macro-icon">💧</div>
+            <div class="macro-value" id="fn-fat">—</div>
+            <div class="macro-label">Lipides</div>
+          </div>
+          <div class="food-macro-item macro-carbs">
+            <div class="macro-icon">🌾</div>
+            <div class="macro-value" id="fn-carbs">—</div>
+            <div class="macro-label">Glucides</div>
+          </div>
+          <div class="food-macro-item macro-fiber">
+            <div class="macro-icon">🌿</div>
+            <div class="macro-value" id="fn-fiber">—</div>
+            <div class="macro-label">Fibres</div>
+          </div>
+          <div class="food-macro-item macro-salt">
+            <div class="macro-icon">🧂</div>
+            <div class="macro-value" id="fn-salt">—</div>
+            <div class="macro-label">Sel</div>
+          </div>
+        </div>
+
+        <!-- Mini distribution bar -->
+        <p class="distribution-title" style="color:#ccc; margin-top:2rem;">Répartition des macros :</p>
+        <div class="bar-wrapper" id="food-bar-wrapper">
+          <div class="bar-segment bar-protein" id="food-bar-protein"><span id="food-pct-protein"></span></div>
+          <div class="bar-segment bar-fat"     id="food-bar-fat"><span id="food-pct-fat"></span></div>
+          <div class="bar-segment bar-carbs"   id="food-bar-carbs"><span id="food-pct-carbs"></span></div>
+        </div>
+        <div class="bar-labels">
+          <span>Protéines</span><span>Lipides</span><span>Glucides</span>
+        </div>
+
+        <button class="btn-reset" style="margin-top:1.5rem;" onclick="resetFoodSearch()">NOUVELLE RECHERCHE</button>
+      </div>
+
+      <div class="off-credit">
+        <p>Données fournies par <strong>Open Food Facts</strong> — base de données alimentaire collaborative et open source.
+        Disponible sous licence <em>Open Database License</em>.</p>
       </div>
     </div>
   </section>
