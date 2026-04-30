@@ -93,44 +93,33 @@ function resetForm() {
   document.getElementById('results-section').style.display = 'none';
 }
 
-// ===== FOOD NUTRITION (Open Food Facts API) =====
+// ===== FOOD NUTRITION — dual source: local DB + Open Food Facts =====
 
 let suggestTimer = null;
-let lastProducts = [];
+let offProducts = [];  // packaged products from Open Food Facts
 
+// ── Autocomplete (local DB only — instant, no network) ──────────────────────
 function onFoodInput() {
   const q = document.getElementById('food-query').value.trim();
   clearTimeout(suggestTimer);
-  if (q.length < 2) {
-    hideSuggestions();
-    return;
-  }
-  suggestTimer = setTimeout(() => fetchSuggestions(q), 350);
+  hideSuggestions();
+  if (q.length < 2) return;
+  suggestTimer = setTimeout(() => {
+    const hits = searchLocalDB(q).slice(0, 6);
+    showLocalSuggestions(hits);
+  }, 150);
 }
 
-async function fetchSuggestions(query) {
-  try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=6&fields=product_name,brands,nutriments,_id&lc=fr&language=fr`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const products = (data.products || []).filter(p => p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null);
-    lastProducts = products;
-    showSuggestions(products);
-  } catch {
-    hideSuggestions();
-  }
-}
-
-function showSuggestions(products) {
+function showLocalSuggestions(foods) {
   const box = document.getElementById('food-suggestions');
-  if (!products.length) { hideSuggestions(); return; }
-  box.innerHTML = products.map((p, i) => {
-    const kcal = Math.round(p.nutriments['energy-kcal_100g'] || 0);
-    const brand = p.brands ? ` — ${p.brands.split(',')[0]}` : '';
-    return `<div class="food-suggestion-item" onclick="selectSuggestion(${i})">
-      ${p.product_name}<span>${kcal} kcal/100g${brand}</span>
-    </div>`;
-  }).join('');
+  if (!foods.length) { hideSuggestions(); return; }
+  box.innerHTML = foods.map((f, i) =>
+    `<div class="food-suggestion-item" onclick="pickLocalSuggestion(${i})">
+       ${f.name}
+       <span>${f.kcal} kcal/100g &mdash; ${f.category}</span>
+     </div>`
+  ).join('');
+  box._localHits = foods;
   box.style.display = 'block';
 }
 
@@ -138,18 +127,20 @@ function hideSuggestions() {
   document.getElementById('food-suggestions').style.display = 'none';
 }
 
-function selectSuggestion(index) {
-  const p = lastProducts[index];
-  document.getElementById('food-query').value = p.product_name;
+function pickLocalSuggestion(i) {
+  const box = document.getElementById('food-suggestions');
+  const food = box._localHits[i];
+  document.getElementById('food-query').value = food.name;
   hideSuggestions();
-  const qtyInput = document.getElementById('food-qty');
-  if (!qtyInput.value) qtyInput.focus();
+  const qtyEl = document.getElementById('food-qty');
+  if (!qtyEl.value) qtyEl.focus();
 }
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
   if (!e.target.closest('.food-input-wrap')) hideSuggestions();
 });
 
+// ── Main search ─────────────────────────────────────────────────────────────
 async function searchFood() {
   const query = document.getElementById('food-query').value.trim();
   const qty   = parseFloat(document.getElementById('food-qty').value);
@@ -157,43 +148,136 @@ async function searchFood() {
 
   if (!query) { showFoodError('Veuillez entrer un aliment.'); return; }
   if (!qty || qty <= 0) { showFoodError('Veuillez entrer une quantité valide (en grammes).'); return; }
+
   errEl.style.display = 'none';
   hideSuggestions();
-
-  document.getElementById('food-loading').style.display = 'flex';
   document.getElementById('food-results-list').style.display = 'none';
   document.getElementById('food-nutrition-card').style.display = 'none';
+  document.getElementById('food-off-section').style.display = 'none';
 
+  // 1. Search local DB first — always instant
+  const localHits = searchLocalDB(query);
+
+  if (localHits.length === 1) {
+    displayLocalNutrition(localHits[0], qty);
+  } else if (localHits.length > 1) {
+    showLocalList(localHits, qty);
+  } else {
+    // No local match → fall back to OFF
+    document.getElementById('food-loading').style.display = 'flex';
+    await searchOFF(query, qty);
+    document.getElementById('food-loading').style.display = 'none';
+    return;
+  }
+
+  // 2. Also fetch packaged products from OFF in background (non-blocking)
+  fetchOFFProducts(query, qty);
+}
+
+// ── Local DB display ─────────────────────────────────────────────────────────
+function showLocalList(foods, qty) {
+  const container = document.getElementById('food-items-container');
+  document.getElementById('food-results-label').textContent =
+    'Plusieurs ingrédients correspondent — choisissez le plus adapté :';
+  container.innerHTML = foods.slice(0, 6).map((f, i) =>
+    `<div class="food-item-row" onclick="pickLocalProduct(${i}, ${qty})">
+       <div>
+         <div class="food-item-name">${f.name}</div>
+         <div class="food-item-brand">${f.category}</div>
+       </div>
+       <div class="food-item-kcal">
+         ${Math.round(f.kcal * qty / 100)}
+         <span>kcal pour ${qty}g</span>
+       </div>
+     </div>`
+  ).join('');
+  container._localHits = foods;
+  document.getElementById('food-results-list').style.display = 'block';
+}
+
+function pickLocalProduct(i, qty) {
+  const foods = document.getElementById('food-items-container')._localHits;
+  document.getElementById('food-results-list').style.display = 'none';
+  displayLocalNutrition(foods[i], qty);
+}
+
+function displayLocalNutrition(food, qty) {
+  const mul = qty / 100;
+  const kcal    = Math.round(food.kcal    * mul);
+  const protein = Math.round(food.protein * mul * 10) / 10;
+  const fat     = Math.round(food.fat     * mul * 10) / 10;
+  const carbs   = Math.round(food.carbs   * mul * 10) / 10;
+  const fiber   = food.fiber > 0 ? (Math.round(food.fiber * mul * 10) / 10) + ' g' : '—';
+  const salt    = food.salt  > 0 ? (Math.round(food.salt  * mul * 100) / 100) + ' g' : '—';
+
+  document.getElementById('food-card-name').textContent = food.name;
+  document.getElementById('food-card-qty').textContent  = `Pour ${qty} g · ${food.category}`;
+  document.getElementById('off-badge-text').textContent = 'Base USDA';
+
+  renderNutritionCard(kcal, protein, fat, carbs, fiber, salt);
+}
+
+// ── Open Food Facts (packaged products) ──────────────────────────────────────
+const OFF_PROXY = 'https://corsproxy.io/?';
+const OFF_BASE  = 'https://world.openfoodfacts.org/cgi/search.pl';
+
+async function fetchOFF(query) {
+  const url = `${OFF_BASE}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&fields=product_name,brands,nutriments&lc=fr`;
+  // Try direct first, then proxy fallback
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&fields=product_name,brands,nutriments,_id&lc=fr&language=fr`;
-    const res  = await fetch(url);
+    const res  = await fetch(url, { signal: AbortSignal.timeout(6000) });
     const data = await res.json();
-    const products = (data.products || []).filter(p => p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null);
-
-    document.getElementById('food-loading').style.display = 'none';
-
-    if (!products.length) {
-      showFoodError('Aucun résultat nutritionnel trouvé. Essayez un autre terme (ex: "poulet", "riz blanc", "boeuf haché").');
-      return;
-    }
-
-    if (products.length === 1) {
-      displayNutrition(products[0], qty);
-    } else {
-      showProductList(products, qty);
-    }
+    return (data.products || []).filter(p =>
+      p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null
+    );
   } catch {
-    document.getElementById('food-loading').style.display = 'none';
-    showFoodError('Erreur de connexion. Vérifiez votre connexion internet et réessayez.');
+    try {
+      const res  = await fetch(OFF_PROXY + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+      const data = await res.json();
+      return (data.products || []).filter(p =>
+        p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null
+      );
+    } catch { return []; }
   }
 }
 
-function showProductList(products, qty) {
+async function fetchOFFProducts(query, qty) {
+  const products = await fetchOFF(query);
+  if (!products.length) return;
+  offProducts = products;
+  renderOFFSection(products, qty);
+}
+
+async function searchOFF(query, qty) {
+  const products = await fetchOFF(query);
+  if (!products.length) {
+    showFoodError('Aucun résultat trouvé. Essayez : "poulet", "riz", "oeuf", "saumon"…');
+    return;
+  }
+  offProducts = products;
+  document.getElementById('food-results-label').textContent =
+    'Produits trouvés — choisissez le plus adapté :';
+  showOFFList(products, qty);
+}
+
+function showOFFList(products, qty) {
   const container = document.getElementById('food-items-container');
-  container.innerHTML = products.slice(0, 8).map((p, i) => {
-    const kcal = Math.round((p.nutriments['energy-kcal_100g'] || 0) * qty / 100);
+  container.innerHTML = buildOFFRows(products, qty, 'selectOFFProduct');
+  document.getElementById('food-results-list').style.display = 'block';
+}
+
+function renderOFFSection(products, qty) {
+  const sec = document.getElementById('food-off-section');
+  document.getElementById('food-off-items').innerHTML =
+    buildOFFRows(products.slice(0, 5), qty, 'selectOFFFromSection');
+  sec.style.display = 'block';
+}
+
+function buildOFFRows(products, qty, fnName) {
+  return products.slice(0, 8).map((p, i) => {
+    const kcal  = Math.round((p.nutriments['energy-kcal_100g'] || 0) * qty / 100);
     const brand = p.brands ? p.brands.split(',')[0] : '';
-    return `<div class="food-item-row" onclick="selectProduct(${i}, ${qty})">
+    return `<div class="food-item-row" onclick="${fnName}(${i}, ${qty})">
       <div>
         <div class="food-item-name">${p.product_name}</div>
         ${brand ? `<div class="food-item-brand">${brand}</div>` : ''}
@@ -201,31 +285,38 @@ function showProductList(products, qty) {
       <div class="food-item-kcal">${kcal} <span>kcal pour ${qty}g</span></div>
     </div>`;
   }).join('');
-
-  lastProducts = products;
-  document.getElementById('food-results-list').style.display = 'block';
 }
 
-function selectProduct(index, qty) {
+function selectOFFProduct(i, qty) {
   document.getElementById('food-results-list').style.display = 'none';
-  displayNutrition(lastProducts[index], qty);
+  displayOFFNutrition(offProducts[i], qty);
 }
 
-function displayNutrition(product, qty) {
+function selectOFFFromSection(i, qty) {
+  document.getElementById('food-off-section').style.display = 'none';
+  displayOFFNutrition(offProducts[i], qty);
+}
+
+function displayOFFNutrition(product, qty) {
   const n   = product.nutriments;
   const mul = qty / 100;
+  const kcal    = Math.round((n['energy-kcal_100g']    || 0) * mul);
+  const protein = Math.round((n['proteins_100g']        || 0) * mul * 10) / 10;
+  const fat     = Math.round((n['fat_100g']             || 0) * mul * 10) / 10;
+  const carbs   = Math.round((n['carbohydrates_100g']   || 0) * mul * 10) / 10;
+  const fiber   = n['fiber_100g'] != null ? (Math.round(n['fiber_100g']  * mul * 10) / 10) + ' g' : '—';
+  const salt    = n['salt_100g']  != null ? (Math.round(n['salt_100g']   * mul * 100) / 100) + ' g' : '—';
 
-  const kcal    = Math.round((n['energy-kcal_100g'] || 0) * mul);
-  const protein = Math.round((n['proteins_100g']    || 0) * mul * 10) / 10;
-  const fat     = Math.round((n['fat_100g']          || 0) * mul * 10) / 10;
-  const carbs   = Math.round((n['carbohydrates_100g']|| 0) * mul * 10) / 10;
-  const fiber   = n['fiber_100g']  != null ? Math.round(n['fiber_100g']  * mul * 10) / 10 + ' g' : '—';
-  const salt    = n['salt_100g']   != null ? Math.round(n['salt_100g']   * mul * 100) / 100 + ' g' : '—';
-
-  const brand = product.brands ? ` (${product.brands.split(',')[0]})` : '';
+  const brand = product.brands ? ` · ${product.brands.split(',')[0]}` : '';
   document.getElementById('food-card-name').textContent = product.product_name + brand;
   document.getElementById('food-card-qty').textContent  = `Pour ${qty} g`;
+  document.getElementById('off-badge-text').textContent = 'Open Food Facts';
 
+  renderNutritionCard(kcal, protein, fat, carbs, fiber, salt);
+}
+
+// ── Shared render ────────────────────────────────────────────────────────────
+function renderNutritionCard(kcal, protein, fat, carbs, fiber, salt) {
   document.getElementById('fn-kcal').textContent    = kcal + ' kcal';
   document.getElementById('fn-protein').textContent = protein + ' g';
   document.getElementById('fn-fat').textContent     = fat + ' g';
@@ -233,7 +324,6 @@ function displayNutrition(product, qty) {
   document.getElementById('fn-fiber').textContent   = fiber;
   document.getElementById('fn-salt').textContent    = salt;
 
-  // Distribution bar
   const totalCals = protein * 4 + fat * 9 + carbs * 4;
   if (totalCals > 0) {
     const pP = Math.round((protein * 4 / totalCals) * 100);
@@ -267,5 +357,7 @@ function resetFoodSearch() {
   document.getElementById('food-error').style.display = 'none';
   document.getElementById('food-results-list').style.display = 'none';
   document.getElementById('food-nutrition-card').style.display = 'none';
+  document.getElementById('food-off-section').style.display = 'none';
+  offProducts = [];
   document.getElementById('food-query').focus();
 }
