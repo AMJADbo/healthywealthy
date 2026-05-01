@@ -373,66 +373,95 @@ const MEAL_LABELS = {
   snack:     '🍎 Collation',
 };
 
-let currentFoodEntry = null; // set by renderNutritionCard
+let currentFoodEntry = null;
+let journalData = { breakfast: [], lunch: [], dinner: [], snack: [] };
 
-function getJournalKey() {
-  return 'hw_journal_' + new Date().toISOString().slice(0, 10);
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
 }
 
-function loadJournal() {
-  const raw = localStorage.getItem(getJournalKey());
-  if (raw) return JSON.parse(raw);
+function emptyJournal() {
   return { breakfast: [], lunch: [], dinner: [], snack: [] };
 }
 
-function saveJournal(data) {
+function getJournalKey() {
+  return 'hw_journal_' + todayDate();
+}
+
+function loadLocalJournal() {
+  const raw = localStorage.getItem(getJournalKey());
+  return raw ? JSON.parse(raw) : emptyJournal();
+}
+
+function saveLocalJournal(data) {
   localStorage.setItem(getJournalKey(), JSON.stringify(data));
 }
 
-function addToMeal(mealKey) {
+async function addToMeal(mealKey) {
   if (!currentFoodEntry) return;
-  const journal = loadJournal();
-  journal[mealKey].push({ ...currentFoodEntry });
-  saveJournal(journal);
-  renderJournal();
 
-  const label = MEAL_LABELS[mealKey];
+  if (currentUser) {
+    await supaAddEntry(mealKey, currentFoodEntry);
+  } else {
+    const journal = loadLocalJournal();
+    journal[mealKey].push({ ...currentFoodEntry });
+    saveLocalJournal(journal);
+  }
+
+  await renderJournal();
+
+  const label   = MEAL_LABELS[mealKey];
   const confirm = document.getElementById('meal-added-confirm');
-  confirm.textContent = `✓ Ajouté à ${label} — ${currentFoodEntry.kcal} kcal`;
+  confirm.textContent   = `✓ Ajouté à ${label} — ${currentFoodEntry.kcal} kcal`;
   confirm.style.display = 'block';
   setTimeout(() => { confirm.style.display = 'none'; }, 3000);
 
   document.getElementById('journal').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function removeFromMeal(mealKey, index) {
-  const journal = loadJournal();
-  journal[mealKey].splice(index, 1);
-  saveJournal(journal);
-  renderJournal();
+async function removeFromMeal(mealKey, index) {
+  if (currentUser) {
+    const entry = journalData[mealKey][index];
+    if (entry?.id) await supaRemoveEntry(entry.id);
+  } else {
+    const journal = loadLocalJournal();
+    journal[mealKey].splice(index, 1);
+    saveLocalJournal(journal);
+  }
+  await renderJournal();
 }
 
-function clearJournal() {
+async function clearJournal() {
   if (!confirm('Réinitialiser tout le journal du jour ?')) return;
-  localStorage.removeItem(getJournalKey());
-  renderJournal();
+  if (currentUser) {
+    await supaClearDay(todayDate());
+  } else {
+    localStorage.removeItem(getJournalKey());
+  }
+  await renderJournal();
 }
 
-function renderJournal() {
-  const journal = loadJournal();
+async function renderJournal() {
+  if (currentUser) {
+    journalData = await supaLoadDay(todayDate());
+  } else {
+    journalData = loadLocalJournal();
+  }
+  renderJournalDOM(journalData);
+}
+
+function renderJournalDOM(journal) {
   const mealsEl = document.getElementById('journal-meals');
   const totalEl = document.getElementById('journal-total');
   const emptyEl = document.getElementById('journal-empty');
 
-  // Date label
-  const today = new Date();
   document.getElementById('journal-date').textContent =
-    today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const allEntries = Object.values(journal).flat();
 
   if (allEntries.length === 0) {
-    mealsEl.innerHTML = '';
+    mealsEl.innerHTML     = '';
     totalEl.style.display = 'none';
     emptyEl.style.display = 'block';
     return;
@@ -440,17 +469,14 @@ function renderJournal() {
 
   emptyEl.style.display = 'none';
 
-  // Render each meal block
   mealsEl.innerHTML = Object.entries(MEAL_LABELS).map(([key, label]) => {
     const entries = journal[key];
-    if (entries.length === 0) return '';
+    if (!entries.length) return '';
     const mealKcal = entries.reduce((s, e) => s + e.kcal, 0);
 
     const rows = entries.map((e, i) => `
       <div class="meal-food-row">
-        <div class="meal-food-name">
-          ${e.name} <span>${e.qty} g</span>
-        </div>
+        <div class="meal-food-name">${e.name} <span>${e.qty} g</span></div>
         <div class="meal-food-macros">
           <span>🔥 <strong>${e.kcal}</strong> kcal</span>
           <span>P <strong>${e.protein}g</strong></span>
@@ -470,7 +496,6 @@ function renderJournal() {
       </div>`;
   }).join('');
 
-  // Totals
   const totKcal    = allEntries.reduce((s, e) => s + e.kcal,    0);
   const totProtein = Math.round(allEntries.reduce((s, e) => s + e.protein, 0) * 10) / 10;
   const totFat     = Math.round(allEntries.reduce((s, e) => s + e.fat,     0) * 10) / 10;
@@ -497,14 +522,13 @@ function renderJournal() {
   totalEl.style.display = 'block';
 }
 
-// Store the current food result so addToMeal can use it
+// Capture current food entry when nutrition card renders
 const _origRender = renderNutritionCard;
 renderNutritionCard = function(kcal, protein, fat, carbs, fiber, salt) {
   _origRender(kcal, protein, fat, carbs, fiber, salt);
-  // save for journal use — name/qty are read from the DOM
-  const name = document.getElementById('food-card-name').textContent;
+  const name    = document.getElementById('food-card-name').textContent;
   const qtyText = document.getElementById('food-card-qty').textContent;
-  const qty = parseFloat(qtyText.replace(/[^0-9.]/g, '')) || 0;
+  const qty     = parseFloat(qtyText.replace(/[^0-9.]/g, '')) || 0;
   currentFoodEntry = {
     name, qty, kcal,
     protein: parseFloat(protein) || 0,
@@ -514,5 +538,5 @@ renderNutritionCard = function(kcal, protein, fat, carbs, fiber, salt) {
   document.getElementById('meal-added-confirm').style.display = 'none';
 };
 
-// Init journal on page load
-document.addEventListener('DOMContentLoaded', renderJournal);
+// Init on page load — auth.js handles this via initAuth()
+document.addEventListener('DOMContentLoaded', initAuth);
