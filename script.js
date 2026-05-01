@@ -448,6 +448,7 @@ async function renderJournal() {
     journalData = loadLocalJournal();
   }
   renderJournalDOM(journalData);
+  renderProgressChart();
 }
 
 function renderJournalDOM(journal) {
@@ -520,6 +521,124 @@ function renderJournalDOM(journal) {
   }
 
   totalEl.style.display = 'block';
+}
+
+// ===== PROGRESS CHART =====
+
+let caloriesChart = null;
+
+async function loadLast15Days() {
+  const dates = [];
+  for (let i = 14; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  const kcalPerDay = {};
+
+  if (currentUser) {
+    const { data } = await db
+      .from('food_journal')
+      .select('date, kcal')
+      .eq('user_id', currentUser.id)
+      .gte('date', dates[0])
+      .lte('date', dates[14]);
+
+    (data || []).forEach(row => {
+      kcalPerDay[row.date] = (kcalPerDay[row.date] || 0) + Number(row.kcal);
+    });
+  } else {
+    dates.forEach(date => {
+      const raw = localStorage.getItem('hw_journal_' + date);
+      if (raw) {
+        const journal = JSON.parse(raw);
+        const total = Object.values(journal).flat().reduce((s, e) => s + e.kcal, 0);
+        if (total > 0) kcalPerDay[date] = total;
+      }
+    });
+  }
+
+  return dates.map(d => ({ date: d, kcal: kcalPerDay[d] || 0 }));
+}
+
+async function renderProgressChart() {
+  const data = await loadLast15Days();
+  const hasData = data.some(d => d.kcal > 0);
+
+  document.getElementById('progress-empty').style.display = hasData ? 'none' : 'block';
+
+  const labels = data.map(d => {
+    const date = new Date(d.date + 'T12:00:00');
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  });
+  const values = data.map(d => d.kcal);
+
+  const colors = values.map(v =>
+    v > 0 ? 'rgba(66, 89, 239, 0.85)' : 'rgba(66, 89, 239, 0.12)'
+  );
+  const borders = values.map(v =>
+    v > 0 ? '#4259ef' : 'rgba(66, 89, 239, 0.2)'
+  );
+
+  if (caloriesChart) {
+    caloriesChart.data.labels = labels;
+    caloriesChart.data.datasets[0].data = values;
+    caloriesChart.data.datasets[0].backgroundColor = colors;
+    caloriesChart.data.datasets[0].borderColor = borders;
+    caloriesChart.update('none');
+    return;
+  }
+
+  const ctx = document.getElementById('calories-chart').getContext('2d');
+  caloriesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: '#333',
+          borderWidth: 1,
+          titleColor: '#aaa',
+          bodyColor: '#fff',
+          callbacks: {
+            label: ctx => ctx.parsed.y > 0 ? `${ctx.parsed.y} kcal` : 'Aucune donnée',
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#555', font: { size: 11, family: 'Inter' } },
+          border: { color: '#222' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#555',
+            font: { size: 11, family: 'Inter' },
+            callback: v => v === 0 ? '0' : v + ' kcal'
+          },
+          border: { color: '#222' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
 }
 
 // Capture current food entry when nutrition card renders

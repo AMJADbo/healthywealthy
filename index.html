@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
 
@@ -20,6 +21,7 @@
         <li><a href="#activity">Activité</a></li>
         <li><a href="#food">Analyse repas</a></li>
         <li><a href="#journal">Journal</a></li>
+        <li><a href="#progress">Progression</a></li>
       </ul>
       <div class="nav-auth">
         <button class="btn-nav-login" id="nav-login-btn" onclick="openAuthModal()">Connexion</button>
@@ -329,12 +331,12 @@
             <div class="macro-label">Calories</div>
           </div>
           <div class="food-macro-item macro-protein">
-            <div class="macro-icon">⚗️</div>
+            <div class="macro-icon">🥩</div>
             <div class="macro-value" id="fn-protein">—</div>
             <div class="macro-label">Protéines</div>
           </div>
           <div class="food-macro-item macro-fat">
-            <div class="macro-icon">💧</div>
+            <div class="macro-icon">🥑</div>
             <div class="macro-value" id="fn-fat">—</div>
             <div class="macro-label">Lipides</div>
           </div>
@@ -431,12 +433,12 @@
             <div class="total-label">Kcal</div>
           </div>
           <div class="total-item">
-            <div class="total-icon">⚗️</div>
+            <div class="total-icon">🥩</div>
             <div class="total-value" id="total-protein">0 g</div>
             <div class="total-label">Protéines</div>
           </div>
           <div class="total-item">
-            <div class="total-icon">💧</div>
+            <div class="total-icon">🥑</div>
             <div class="total-value" id="total-fat">0 g</div>
             <div class="total-label">Lipides</div>
           </div>
@@ -458,6 +460,20 @@
 
       <div class="journal-empty" id="journal-empty">
         <p>Votre journal est vide.<br>Analysez un aliment ci-dessus et ajoutez-le à un repas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROGRESS CHART SECTION ===== -->
+  <section id="progress" class="progress-section">
+    <div class="progress-inner">
+      <h2>PROGRESSION CALORIQUE</h2>
+      <p class="progress-subtitle">Calories consommées sur les 15 derniers jours</p>
+      <div class="chart-container">
+        <canvas id="calories-chart"></canvas>
+      </div>
+      <div class="progress-empty" id="progress-empty" style="display:none;">
+        <p>Pas encore de données.<br>Commencez à enregistrer vos repas pour voir votre progression ici.</p>
       </div>
     </div>
   </section>
