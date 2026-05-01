@@ -1424,6 +1424,50 @@ input[type="number"].food-qty { -moz-appearance: textfield; }
   letter-spacing: 1px;
 }
 
+/* ===== PROGRESS CHART SECTION ===== */
+.progress-section {
+  background: #0a0a0a;
+  padding: 5rem 2rem;
+  border-top: 2px solid #1e1e1e;
+}
+
+.progress-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.progress-section h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  line-height: 1.05;
+}
+
+.progress-subtitle {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 2.5rem;
+}
+
+.chart-container {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 1.5rem;
+  height: 320px;
+  position: relative;
+}
+
+.progress-empty {
+  text-align: center;
+  color: #444;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  padding: 2rem 0;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .calc-wrapper { grid-template-columns: 1fr; gap: 3rem; }
